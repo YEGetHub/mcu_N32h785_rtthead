@@ -1,0 +1,28 @@
+from building import *
+import os
+
+# Import environment variables
+Import('env')
+
+# Get the current working directory
+cwd = GetCurrentDir()
+
+# Initialize include paths and source files list
+path = [os.path.join(cwd, 'device')]
+src = [os.path.join(cwd, 'device', 'system_n32h7xx.c')]
+
+# Select chip's startup file
+if rtconfig.PLATFORM in ['gcc', 'llvm-arm']:
+    src += [os.path.join(cwd, 'device', 'startup', 'startup_n32h73x_76x_gcc.s')]
+    src += [os.path.join(cwd, 'device', 'soc_gcc.c')]
+elif rtconfig.PLATFORM in ['armcc', 'armclang']:
+    src += [os.path.join(cwd, 'device', 'startup', 'startup_n32h73x_76x.s')]
+    src += [os.path.join(cwd, 'device', 'soc_mdk.c')]
+elif rtconfig.PLATFORM in ['iccarm']:
+    src += [os.path.join(cwd, 'device', 'startup', 'startup_n32h73x_76x_EWARM.s')]
+
+# Define the build group
+group = DefineGroup('Libraries-CMSIS', src, depend=['PKG_USING_N32H7XX_CMSIS_DRIVER'], CPPPATH=path)
+
+# Return the build group
+Return('group')
