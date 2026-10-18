@@ -1,0 +1,17 @@
+[
+ {
+  "name": "CMSIS_CORE",
+  "path": "/packages/system/CMSIS/CMSIS-Core",
+  "ver": "latest"
+ },
+ {
+  "name": "N32H7XX_STD_DRIVER",
+  "path": "/packages/peripherals/hal-sdk/n32/n32h7xx_std_driver",
+  "ver": "latest"
+ },
+ {
+  "name": "N32H7XX_CMSIS_DRIVER",
+  "path": "/packages/peripherals/hal-sdk/n32/n32h7xx_cmsis_driver",
+  "ver": "latest"
+ }
+]

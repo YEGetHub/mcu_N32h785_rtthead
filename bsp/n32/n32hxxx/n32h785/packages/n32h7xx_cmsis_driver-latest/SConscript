@@ -1,0 +1,71 @@
+import os
+from building import *
+
+
+def _same_path(path_a, path_b):
+    return os.path.normcase(os.path.abspath(path_a)) == os.path.normcase(os.path.abspath(path_b))
+
+
+def _get_existing_libraries_path(root):
+    exact_path = os.path.join(root, 'libraries')
+    if os.path.isdir(exact_path):
+        return exact_path
+
+    try:
+        for name in os.listdir(root):
+            path = os.path.join(root, name)
+            if name.lower() == 'libraries' and os.path.isdir(path):
+                return path
+    except OSError:
+        pass
+
+    return None
+
+
+def _is_rt_thread_bsp_dir(path):
+    parent = os.path.dirname(path)
+    return (
+        os.path.basename(path).lower() == 'bsp'
+        and os.path.isdir(os.path.join(parent, 'bsp'))
+        and os.path.isfile(os.path.join(parent, 'include', 'rtdef.h'))
+    )
+
+
+def _find_hal_sdk_libraries_path(bsp_root):
+    current = os.path.abspath(bsp_root)
+
+    while True:
+        libraries_path = _get_existing_libraries_path(current)
+        if libraries_path:
+            return libraries_path
+
+        if _is_rt_thread_bsp_dir(current):
+            return None
+
+        parent = os.path.dirname(current)
+        if _same_path(parent, current):
+            return None
+
+        current = parent
+
+
+cwd = GetCurrentDir()
+package_name = os.path.basename(cwd)
+bsp_root = os.path.abspath(os.path.join(cwd, '..', '..'))
+libraries_path_prefix = _find_hal_sdk_libraries_path(bsp_root)
+source_path = os.path.abspath(os.path.join(libraries_path_prefix, package_name)) if libraries_path_prefix else ''
+sconscript = os.path.join(source_path, 'SConscript') if source_path else ''
+variant_dir = os.path.join('..', '..', 'packages', package_name)
+
+objs = []
+if os.path.isfile(sconscript):
+    result = SConscript(sconscript, variant_dir=variant_dir, duplicate=0)
+    if isinstance(result, list):
+        objs += result
+    elif result:
+        objs.append(result)
+else:
+    print('warning: hal-sdk package source not found: %s' % source_path)
+
+Return('objs')
+
